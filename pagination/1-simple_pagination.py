@@ -3,7 +3,6 @@
 Simple pagination
 """
 import csv
-import math
 from typing import List, Tuple
 
 
@@ -40,13 +39,12 @@ class Server:
         Takes two integer arguments page and page_size and returns 
         the appropriate page of the dataset.
         """
-        assert type(page) == int and page > 0
-        assert type(page_size) == int and page_size > 0
+        assert isinstance(page, int) and page > 0
+        assert isinstance(page_size, int) and page_size > 0
 
-        start_index, end_index = index_range(page, page_size)
+        start, end = index_range(page, page_size)
         data = self.dataset()
 
-        if start_index >= len(data):
-            return []
-
-        return data[start_index:end_index]
+        # Python-da slicing (kəsmə) əməliyyatı indeks həddini aşanda 
+        # avtomatik olaraq boş siyahı [] qaytarır.
+        return data[start:end]
