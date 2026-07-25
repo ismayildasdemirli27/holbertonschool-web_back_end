@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-""" Module for inserting a document in Python """
+"""Insert a new document in a collection."""
 
 
 def insert_school(mongo_collection, **kwargs):
-    """ Inserts a new document in a collection based on kwargs """
-    return mongo_collection.insert_one(kwargs).inserted_id
+    """Insert a school and return its id."""
+    result = mongo_collection.insert_one(kwargs)
+    return result.inserted_id
+  
