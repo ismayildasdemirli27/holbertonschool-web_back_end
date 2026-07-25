@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-""" Module that lists all documents in a MongoDB collection """
+"""Module for listing documents"""
 
 
 def list_all(mongo_collection):
-    """ Lists all documents in a collection """
-    if mongo_collection is None:
-        return []
+    """Return all documents in a collection"""
     return list(mongo_collection.find())
+  
