@@ -50,20 +50,19 @@ function countStudents(path) {
 }
 
 const app = http.createServer((req, res) => {
+  res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
 
   if (req.url === '/') {
-    res.statusCode = 200;
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
-    res.statusCode = 200;
-    res.write('This is the list of our students\n');
+    // Məlumatları birləşdirib TƏK BİR DƏFƏYƏ göndəririk ki, Chunking problemi yaranmasın
     countStudents(process.argv[2])
       .then((data) => {
-        res.end(data);
+        res.end(`This is the list of our students\n${data}`);
       })
       .catch((err) => {
-        res.end(err.message);
+        res.end(`This is the list of our students\n${err.message}`);
       });
   } else {
     res.statusCode = 404;
