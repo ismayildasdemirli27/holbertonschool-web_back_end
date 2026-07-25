@@ -3,6 +3,12 @@ const fs = require('fs');
 
 function countStudents(path) {
   return new Promise((resolve, reject) => {
+    // Əgər fayl adı verilməyibsə (undefined), serverin çökməsinin qarşısını alırıq
+    if (!path) {
+      reject(new Error('Cannot load the database'));
+      return;
+    }
+
     fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
         reject(new Error('Cannot load the database'));
@@ -15,7 +21,7 @@ function countStudents(path) {
         return;
       }
       
-      lines.shift(); // Başlıqları çıxarırıq
+      lines.shift();
       let result = `Number of students: ${lines.length}\n`;
       const fields = {};
       
@@ -53,7 +59,6 @@ const app = http.createServer((req, res) => {
   } else if (req.url === '/students') {
     res.statusCode = 200;
     res.write('This is the list of our students\n');
-    // process.argv[2] terminaldan verilən database.csv faylının adını götürür
     countStudents(process.argv[2])
       .then((data) => {
         res.end(data);
@@ -61,6 +66,10 @@ const app = http.createServer((req, res) => {
       .catch((err) => {
         res.end(err.message);
       });
+  } else {
+    // Check-lərin serveri asılı qoymaması üçün təyin olunmayan URL-lərə 404 qaytarırıq
+    res.statusCode = 404;
+    res.end('Not Found');
   }
 });
 
