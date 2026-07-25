@@ -1,55 +1,6 @@
 const http = require('http');
 const fs = require('fs');
 
-function countStudents(path) {
-  return new Promise((resolve, reject) => {
-    if (!path) {
-      reject(new Error('Cannot load the database'));
-      return;
-    }
-    fs.readFile(path, 'utf8', (err, data) => {
-      if (err) {
-        reject(new Error('Cannot load the database'));
-        return;
-      }
-      
-      // BAX BURADA: Silinmiş \r təmizləyicisi geri qaytarıldı (Check 4 məhz buna görə kəsilirdi)
-      const lines = data.replace(/\r/g, '').split('\n').filter((line) => line.trim() !== '');
-      
-      if (lines.length <= 1) {
-        resolve('Number of students: 0');
-        return;
-      }
-      
-      lines.shift();
-      let result = `Number of students: ${lines.length}\n`;
-      const fields = {};
-      
-      for (const line of lines) {
-        const student = line.split(',');
-        if (student.length >= 4) {
-          const firstName = student[0].trim();
-          const field = student[3].trim();
-          if (!fields[field]) {
-            fields[field] = [];
-          }
-          fields[field].push(firstName);
-        }
-      }
-      
-      const entries = Object.entries(fields);
-      for (let i = 0; i < entries.length; i++) {
-        const [field, names] = entries[i];
-        result += `Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
-        if (i < entries.length - 1) {
-          result += '\n';
-        }
-      }
-      resolve(result);
-    });
-  });
-}
-
 const app = http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
@@ -58,16 +9,44 @@ const app = http.createServer((req, res) => {
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
     res.write('This is the list of our students\n');
-    countStudents(process.argv[2])
-      .then((data) => {
-        res.end(data);
-      })
-      .catch((err) => {
-        // Check 2-ni yaşıl edən 404 statusu
-        res.statusCode = 404;
-        res.end(err.message);
-      });
+    
+    // Serverin çökməməsi üçün arqument verilməyəndə boş sətir təyin edirik
+    const dbPath = process.argv.length > 2 ? process.argv[2] : '';
+    
+    fs.readFile(dbPath, 'utf8', (err, data) => {
+      if (err) {
+        // Status kodu 200 qalmalıdır, sadəcə xəta mesajını göndəririk!
+        res.end('Cannot load the database');
+      } else {
+        const lines = data.replace(/\r/g, '').split('\n').filter((line) => line.trim() !== '');
+        if (lines.length > 0) {
+          lines.shift(); // Başlıqları çıxarırıq
+        }
+        res.write(`Number of students: ${lines.length}\n`);
+        
+        const fields = {};
+        lines.forEach((line) => {
+          const student = line.split(',');
+          if (student.length >= 4) {
+            const firstName = student[0].trim();
+            const field = student[3].trim();
+            if (!fields[field]) fields[field] = [];
+            fields[field].push(firstName);
+          }
+        });
+        
+        const entries = Object.entries(fields);
+        entries.forEach(([field, names], idx) => {
+          res.write(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+          if (idx < entries.length - 1) {
+            res.write('\n');
+          }
+        });
+        res.end();
+      }
+    });
   } else {
+    // Yalnız təyin olunmayan səhifələr üçün 404
     res.statusCode = 404;
     res.end('Not Found');
   }
