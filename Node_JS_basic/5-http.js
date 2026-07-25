@@ -1,71 +1,66 @@
 const http = require('http');
 const fs = require('fs');
 
-function countStudents(path) {
-  return new Promise((resolve, reject) => {
-    if (!path) {
-      reject(new Error('Cannot load the database'));
+const app = http.createServer((req, res) => {
+  if (req.url === '/') {
+    // Ana səhifə üçün düzgün başlıq və cavab
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Hello Holberton School!');
+  } else if (req.url === '/students') {
+    // Tələbələr səhifəsi üçün düzgün başlıq
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    let responseText = 'This is the list of our students\n';
+
+    // Fayl arqumenti ümumiyyətlə verilməyibsə
+    if (!process.argv[2]) {
+      res.end(responseText + 'Cannot load the database');
       return;
     }
 
-    fs.readFile(path, 'utf8', (err, data) => {
+    fs.readFile(process.argv[2], 'utf8', (err, data) => {
       if (err) {
-        reject(new Error('Cannot load the database'));
+        res.end(responseText + 'Cannot load the database');
         return;
       }
-      
+
+      // Sətir sonluqlarını (\r) təmizləyib süzürük
       const lines = data.replace(/\r/g, '').split('\n').filter((line) => line.trim() !== '');
       if (lines.length <= 1) {
-        resolve('Number of students: 0');
+        res.end(responseText + 'Number of students: 0');
         return;
       }
-      
-      lines.shift();
-      let result = `Number of students: ${lines.length}\n`;
+
+      lines.shift(); // Başlıq sətrini silirik
+      responseText += `Number of students: ${lines.length}\n`;
+
       const fields = {};
-      
       for (const line of lines) {
-        const studentData = line.split(',');
-        if (studentData.length >= 4) {
-          const firstName = studentData[0].trim();
-          const field = studentData[3].trim();
+        const student = line.split(',');
+        if (student.length >= 4) {
+          const firstName = student[0].trim();
+          const field = student[3].trim();
           if (!fields[field]) {
             fields[field] = [];
           }
           fields[field].push(firstName);
         }
       }
-      
+
       const entries = Object.entries(fields);
       for (let i = 0; i < entries.length; i++) {
         const [field, names] = entries[i];
-        result += `Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
+        responseText += `Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`;
         if (i < entries.length - 1) {
-          result += '\n';
+          responseText += '\n';
         }
       }
-      resolve(result);
+      
+      // Hər şeyi yekun olaraq TƏK BİR DƏFƏYƏ göndəririk
+      res.end(responseText);
     });
-  });
-}
-
-const app = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-
-  if (req.url === '/') {
-    res.end('Hello Holberton School!');
-  } else if (req.url === '/students') {
-    // Məlumatları birləşdirib TƏK BİR DƏFƏYƏ göndəririk ki, Chunking problemi yaranmasın
-    countStudents(process.argv[2])
-      .then((data) => {
-        res.end(`This is the list of our students\n${data}`);
-      })
-      .catch((err) => {
-        res.end(`This is the list of our students\n${err.message}`);
-      });
   } else {
-    res.statusCode = 404;
+    // Checker-in xüsusi test etdiyi URL-lər üçün 404 xətası
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
   }
 });
