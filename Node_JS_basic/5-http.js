@@ -8,15 +8,13 @@ const app = http.createServer((req, res) => {
   if (req.url === '/') {
     res.end('Hello Holberton School!');
   } else if (req.url === '/students') {
-    const responseText = 'This is the list of our students\n';
-    
-    // Moduldan gələn datanı birbaşa mətni birləşdirib tək paketdə göndəririk
+    res.write('This is the list of our students\n');
     countStudents(process.argv[2])
       .then((data) => {
-        res.end(responseText + data);
+        res.end(data);
       })
       .catch((err) => {
-        res.end(responseText + err.message);
+        res.end(err.message);
       });
   } else {
     res.statusCode = 404;
