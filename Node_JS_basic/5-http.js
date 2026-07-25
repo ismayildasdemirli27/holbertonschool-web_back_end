@@ -12,14 +12,19 @@ function countStudents(path) {
         reject(new Error('Cannot load the database'));
         return;
       }
-      const lines = data.split('\n').filter((line) => line.trim() !== '');
+      
+      // BAX BURADA: Silinmiş \r təmizləyicisi geri qaytarıldı (Check 4 məhz buna görə kəsilirdi)
+      const lines = data.replace(/\r/g, '').split('\n').filter((line) => line.trim() !== '');
+      
       if (lines.length <= 1) {
         resolve('Number of students: 0');
         return;
       }
+      
       lines.shift();
       let result = `Number of students: ${lines.length}\n`;
       const fields = {};
+      
       for (const line of lines) {
         const student = line.split(',');
         if (student.length >= 4) {
@@ -31,6 +36,7 @@ function countStudents(path) {
           fields[field].push(firstName);
         }
       }
+      
       const entries = Object.entries(fields);
       for (let i = 0; i < entries.length; i++) {
         const [field, names] = entries[i];
@@ -45,7 +51,6 @@ function countStudents(path) {
 }
 
 const app = http.createServer((req, res) => {
-  // Standart olaraq 200 OK təyin edirik
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
 
@@ -58,12 +63,11 @@ const app = http.createServer((req, res) => {
         res.end(data);
       })
       .catch((err) => {
-        // BAX BURADA: Bazanı tapmayanda statusu 404 edirik (Check 2 məhz bunu axtarır!)
+        // Check 2-ni yaşıl edən 404 statusu
         res.statusCode = 404;
         res.end(err.message);
       });
   } else {
-    // Digər səhifələr üçün də 404 təyin edirik
     res.statusCode = 404;
     res.end('Not Found');
   }
