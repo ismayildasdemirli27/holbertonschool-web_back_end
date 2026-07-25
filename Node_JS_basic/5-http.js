@@ -3,7 +3,6 @@ const fs = require('fs');
 
 function countStudents(path) {
   return new Promise((resolve, reject) => {
-    // Əgər fayl adı verilməyibsə (undefined), serverin çökməsinin qarşısını alırıq
     if (!path) {
       reject(new Error('Cannot load the database'));
       return;
@@ -67,7 +66,6 @@ const app = http.createServer((req, res) => {
         res.end(err.message);
       });
   } else {
-    // Check-lərin serveri asılı qoymaması üçün təyin olunmayan URL-lərə 404 qaytarırıq
     res.statusCode = 404;
     res.end('Not Found');
   }
