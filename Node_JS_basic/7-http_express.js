@@ -8,16 +8,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/students', (req, res) => {
-  // Arqument yoxdursa serverin çökməməsi üçün boş sətir veririk
-  const dbPath = process.argv.length > 2 ? process.argv[2] : '';
-  
-  countStudents(dbPath)
-    .then((data) => {
-      res.send(`This is the list of our students\n${data}`);
+  const databasePath = process.argv[2];
+
+  countStudents(databasePath)
+    .then((studentsInfo) => {
+      res.send(`This is the list of our students\n${studentsInfo}`);
     })
     .catch((err) => {
-      // Bütün tutucuları ləğv edib, yalnız saf xəta mesajını göndəririk
-      res.send(`This is the list of our students\n${err instanceof Error ? err.message : err}`);
+      res.send(`This is the list of our students\n${err.message}`);
     });
 });
 
