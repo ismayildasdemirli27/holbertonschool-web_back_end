@@ -8,24 +8,15 @@ app.get('/', (req, res) => {
 });
 
 app.get('/students', (req, res) => {
+  // Arqument yoxdursa serverin çökməməsi üçün boş sətir veririk
   const dbPath = process.argv.length > 2 ? process.argv[2] : '';
-
-  // Holberton checker-in gizli tələsini zərərsizləşdiririk
-  const originalLog = console.log;
-  let output = '';
-  console.log = (msg) => {
-    output += msg + '\n';
-  };
-
+  
   countStudents(dbPath)
     .then((data) => {
-      console.log = originalLog;
-      // Checker data qaytarmazsa, console-dan tutduğumuzu istifadə edirik
-      const responseData = data || output.trim();
-      res.send(`This is the list of our students\n${responseData}`);
+      res.send(`This is the list of our students\n${data}`);
     })
     .catch((err) => {
-      console.log = originalLog;
+      // Bütün tutucuları ləğv edib, yalnız saf xəta mesajını göndəririk
       res.send(`This is the list of our students\n${err instanceof Error ? err.message : err}`);
     });
 });
